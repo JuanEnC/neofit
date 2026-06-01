@@ -3,3 +3,5 @@ packages:
   - 'backend'
   - 'infrastructure'
   - 'tests'
+allowBuilds:
+  unrs-resolver: set this to true or false

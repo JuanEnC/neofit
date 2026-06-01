@@ -55,3 +55,10 @@ sam-tests/
 # Temporary files
 *.tmp
 *.temp
+
+# CDK
+infrastructure/cdk.out/
+infrastructure/dist/
+infrastructure/.env
+infrastructure/.env.local
+infrastructure/.env.*.local

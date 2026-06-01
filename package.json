@@ -15,7 +15,10 @@
     "format:check": "pnpm --recursive format:check",
     "test:unit": "pnpm --recursive test:unit",
     "test:integration": "pnpm --recursive test:integration",
-    "build": "pnpm --recursive build"
+    "build": "pnpm --recursive build",
+    "deploy:infra": "bash scripts/deploy-infrastructure.sh dev us-east-1",
+    "deploy:infra:prod": "bash scripts/deploy-infrastructure.sh prod us-east-1",
+    "validate:infra": "bash scripts/validate-infrastructure.sh dev us-east-1"
   },
   "keywords": [
     "gym",

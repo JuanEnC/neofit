@@ -1,0 +1,10 @@
+{
+  "app": "npx ts-node bin/infrastructure.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": ["README.md", "cdk*.json", "**/*.d.ts", "node_modules", "dist"]
+  },
+  "context": {
+    "environment": "dev"
+  }
+}

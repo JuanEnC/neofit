@@ -1,0 +1,27 @@
+{
+  "name": "neofit-infrastructure",
+  "version": "1.0.0",
+  "description": "AWS CDK Infrastructure for NeoFit",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "synth": "cdk synth --context environment=dev",
+    "synth:prod": "cdk synth --context environment=prod",
+    "deploy": "cdk deploy --context environment=dev --require-approval never",
+    "deploy:prod": "cdk deploy --context environment=prod --require-approval always",
+    "destroy": "cdk destroy --context environment=dev --force",
+    "diff": "cdk diff --context environment=dev",
+    "list": "cdk list --context environment=dev"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.x.x",
+    "constructs": "^10.x.x"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x.x",
+    "typescript": "~5.x.x",
+    "ts-node": "^10.x.x"
+  }
+}
