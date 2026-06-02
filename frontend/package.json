@@ -1,0 +1,11 @@
+{
+  "name": "neofit-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "echo 'Frontend not initialized yet - Phase 3'",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  }
+}

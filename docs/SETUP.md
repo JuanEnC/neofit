@@ -73,6 +73,7 @@ pnpm format:check
 ```
 
 ## Monorepo Structure
+
 ```
 neofit/
 ├── frontend/          # Next.js + React application
@@ -113,11 +114,13 @@ pnpm deploy           # Deploy to AWS
 ## Troubleshooting
 
 ### "command not found: pnpm"
+
 ```bash
 npm install -g pnpm
 ```
 
 ### "Module not found" errors
+
 ```bash
 # Delete node_modules and reinstall
 rm -rf node_modules
@@ -125,12 +128,14 @@ pnpm install
 ```
 
 ### AWS credentials not found
+
 ```bash
 aws configure
 # Follow the prompts to add your credentials
 ```
 
 ### Port 3000 already in use
+
 ```bash
 # Find and kill process using port 3000
 # On macOS/Linux:
@@ -147,6 +152,7 @@ taskkill /PID <PID> /F
 ### VS Code (Recommended)
 
 Install extensions:
+
 - ESLint
 - Prettier - Code formatter
 - Thunder Client (for API testing)

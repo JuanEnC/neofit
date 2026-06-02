@@ -9,16 +9,12 @@
     "pnpm": ">=8.0.0"
   },
   "scripts": {
-    "install-all": "pnpm install --recursive",
-    "lint": "pnpm --recursive lint",
-    "format": "pnpm --recursive format",
-    "format:check": "pnpm --recursive format:check",
-    "test:unit": "pnpm --recursive test:unit",
-    "test:integration": "pnpm --recursive test:integration",
-    "build": "pnpm --recursive build",
-    "deploy:infra": "bash scripts/deploy-infrastructure.sh dev us-east-1",
-    "deploy:infra:prod": "bash scripts/deploy-infrastructure.sh prod us-east-1",
-    "validate:infra": "bash scripts/validate-infrastructure.sh dev us-east-1"
+    "lint": "eslint infrastructure/lib infrastructure/bin backend/src --ext .ts --max-warnings 0",
+    "format": "prettier --write . --ignore-path .prettierignore",
+    "format:check": "prettier --check . --ignore-path .prettierignore",
+    "build": "pnpm --filter neofit-infrastructure build",
+    "test:unit": "echo 'Tests will be added in Phase 2' && exit 0",
+    "deploy:infra": "bash scripts/deploy-infrastructure.sh dev us-east-1"
   },
   "keywords": [
     "gym",
@@ -31,9 +27,11 @@
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^10.4.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.6",
-    "prettier": "^3.8.3"
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0"
   }
 }

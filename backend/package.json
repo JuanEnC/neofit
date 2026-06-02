@@ -1,0 +1,10 @@
+{
+  "name": "neofit-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
+  }
+}

@@ -5,6 +5,7 @@
 ## 🎯 Project Overview
 
 NeoFit is a full-stack web application designed to automate gym operations with:
+
 - **User Management:** Client registration, authentication, and membership tracking
 - **Dashboard:** Admin analytics and client management
 - **Routines:** Comprehensive exercise catalog organized by muscle groups
@@ -14,20 +15,21 @@ NeoFit is a full-stack web application designed to automate gym operations with:
 
 ## 🚀 Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | Next.js 14, React, TypeScript, Tailwind CSS, Shadcn/UI |
-| **Backend** | AWS Lambda, Node.js |
-| **Database** | Amazon DynamoDB (Single Table Design) |
-| **Authentication** | Amazon Cognito |
-| **API** | Amazon API Gateway (HTTP API) |
-| **Payments** | Stripe (Test Mode) |
-| **Notifications** | AWS SES + SNS |
-| **Infrastructure** | AWS CDK, TypeScript |
-| **CI/CD** | GitHub Actions |
-| **Testing** | Jest, Playwright |
+| Layer              | Technology                                             |
+| ------------------ | ------------------------------------------------------ |
+| **Frontend**       | Next.js 14, React, TypeScript, Tailwind CSS, Shadcn/UI |
+| **Backend**        | AWS Lambda, Node.js                                    |
+| **Database**       | Amazon DynamoDB (Single Table Design)                  |
+| **Authentication** | Amazon Cognito                                         |
+| **API**            | Amazon API Gateway (HTTP API)                          |
+| **Payments**       | Stripe (Test Mode)                                     |
+| **Notifications**  | AWS SES + SNS                                          |
+| **Infrastructure** | AWS CDK, TypeScript                                    |
+| **CI/CD**          | GitHub Actions                                         |
+| **Testing**        | Jest, Playwright                                       |
 
 ## 📋 Project Structure
+
 ```
 neofit/
 ├── frontend/          # Next.js application
@@ -52,6 +54,7 @@ neofit/
 ## 🛠️ Quick Start
 
 ### Prerequisites
+
 - Node.js v18+
 - pnpm v8+
 - AWS Account (Free Tier eligible)
@@ -135,12 +138,14 @@ MIT License - see [LICENSE](./LICENSE) file for details
 ## 👤 Author
 
 **Your Name**
+
 - GitHub: [@yourUsername](https://github.com/yourUsername)
 - LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
 
 ## 📞 Support
 
 For issues and questions:
+
 - Open an [Issue](https://github.com/YOUR_USERNAME/neofit/issues)
 - Check [Discussions](https://github.com/YOUR_USERNAME/neofit/discussions)
 

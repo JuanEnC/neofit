@@ -1,4 +1,3 @@
-
 # Contributing to NeoFit
 
 ## Code Standards
@@ -6,23 +5,24 @@
 ### Commit Messages (Conventional Commits)
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
 ```
 <type>(<scope>): <subject>
 
-<body> <footer> 
+<body> <footer>
 ```
 
 **Types:**
 
--   `feat:` - Nueva característica
--   `fix:` - Corrección de bug
--   `docs:` - Cambios en documentación
--   `style:` - Cambios de formato (no afectan lógica)
--   `refactor:` - Refactorización de código
--   `perf:` - Mejoras de performance
--   `test:` - Agregar o actualizar tests
--   `chore:` - Cambios en build, dependencies, etc.
--   `ci:` - Cambios en CI/CD
+- `feat:` - Nueva característica
+- `fix:` - Corrección de bug
+- `docs:` - Cambios en documentación
+- `style:` - Cambios de formato (no afectan lógica)
+- `refactor:` - Refactorización de código
+- `perf:` - Mejoras de performance
+- `test:` - Agregar o actualizar tests
+- `chore:` - Cambios en build, dependencies, etc.
+- `ci:` - Cambios en CI/CD
 
 **Ejemplos:**
 
@@ -59,9 +59,9 @@ docs/description             # Cambios en documentación
 
 **Ejemplos:**
 
--   `feature/cognito-integration`
--   `bugfix/payment-processing-error`
--   `docs/api-documentation`
+- `feature/cognito-integration`
+- `bugfix/payment-processing-error`
+- `docs/api-documentation`
 
 ## Pull Request Process
 
@@ -94,17 +94,17 @@ pnpm format:check
 
 ### TypeScript
 
--   Always use TypeScript, avoid `any`
--   Export types properly
--   Use interfaces for object shapes
--   Use enums for constants
+- Always use TypeScript, avoid `any`
+- Export types properly
+- Use interfaces for object shapes
+- Use enums for constants
 
 ### Testing
 
--   Unit tests required for business logic
--   Aim for 80%+ code coverage
--   Integration tests for API flows
--   E2E tests for critical user journeys
+- Unit tests required for business logic
+- Aim for 80%+ code coverage
+- Integration tests for API flows
+- E2E tests for critical user journeys
 
 ## Development Workflow
 
@@ -136,6 +136,6 @@ git push origin feature/my-feature
 
 ## Questions?
 
--   Check documentation: `./docs/`
--   Open a discussion: GitHub Discussions
--   Check existing issues: GitHub Issues
+- Check documentation: `./docs/`
+- Open a discussion: GitHub Discussions
+- Check existing issues: GitHub Issues

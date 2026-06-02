@@ -3,7 +3,9 @@ dist
 build
 .next
 coverage
+cdk.out
 *.lock
+pnpm-lock.yaml
 .env
 .env.local
 .DS_Store

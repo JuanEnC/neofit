@@ -13,7 +13,10 @@
     "deploy:prod": "cdk deploy --context environment=prod --require-approval always",
     "destroy": "cdk destroy --context environment=dev --force",
     "diff": "cdk diff --context environment=dev",
-    "list": "cdk list --context environment=dev"
+    "list": "cdk list --context environment=dev",
+    "lint": "eslint lib bin --ext .ts",
+    "format": "prettier --write lib bin",
+    "format:check": "prettier --check lib bin"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.x.x",
