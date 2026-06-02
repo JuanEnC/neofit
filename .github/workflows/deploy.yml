@@ -1,0 +1,107 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+  AWS_REGION: 'us-east-1'
+
+jobs:
+  deploy:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    # Solo ejecutar en pushes a main desde el repositorio principal (no desde forks)
+    if: github.ref == 'refs/heads/main' && github.repository == 'JuanEnC/neofit'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk@2
+
+      - name: Build infrastructure code
+        working-directory: ./infrastructure
+        run: pnpm build
+
+      - name: Validate CDK stack
+        working-directory: ./infrastructure
+        run: pnpm diff --context environment=dev
+
+      - name: Deploy CDK stack
+        working-directory: ./infrastructure
+        run: |
+          echo "Deploying CDK stack to AWS..."
+          pnpm deploy --context environment=dev --require-approval never
+        env:
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+          CDK_DEFAULT_REGION: ${{ env.AWS_REGION }}
+
+      - name: Post deployment verification
+        run: |
+          echo "Verifying deployment..."
+          aws cloudformation describe-stacks \
+            --stack-name NeoFit-Stack-dev \
+            --region ${{ env.AWS_REGION }} \
+            --query 'Stacks[0].StackStatus' \
+            --output text
+
+      - name: Create deployment summary
+        if: always()
+        run: |
+          echo "## Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "Stack: NeoFit-Stack-dev" >> $GITHUB_STEP_SUMMARY
+          echo "Region: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "Account: ${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Stack URL: https://console.aws.amazon.com/cloudformation/home?region=${{ env.AWS_REGION }}#/stacks/detail?stackId=NeoFit-Stack-dev"
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "Deployment failed. Check the logs above."
+          exit 1
