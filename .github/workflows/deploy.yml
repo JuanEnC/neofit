@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '22'
   PNPM_VERSION: '11'
   AWS_REGION: 'us-east-1'
 
