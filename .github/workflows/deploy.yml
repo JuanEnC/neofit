@@ -51,13 +51,13 @@ jobs:
 
       - name: Validate CDK stack
         working-directory: ./infrastructure
-        run: pnpm diff --context environment=dev
+        run: cdk diff --context environment=dev
 
       - name: Deploy CDK stack
         working-directory: ./infrastructure
         run: |
           echo "Deploying CDK stack to AWS..."
-          pnpm deploy --context environment=dev --require-approval never
+          cdk deploy --context environment=dev --require-approval never
         env:
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
           CDK_DEFAULT_REGION: ${{ env.AWS_REGION }}
