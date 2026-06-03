@@ -69,6 +69,9 @@ jobs:
         working-directory: ./infrastructure
         run: pnpm build
 
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk@2
+
       - name: Validate CDK synthesis
         working-directory: ./infrastructure
         run: pnpm synth --context environment=dev

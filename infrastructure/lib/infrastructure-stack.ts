@@ -101,10 +101,11 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
         type: dynamodb.AttributeType.STRING,
       },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      // StreamSpecification cambió a stream con StreamViewType
       stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
-      pointInTimeRecovery: environment === 'prod',
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: environment === 'prod',
+      },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -270,7 +271,7 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
         minute: '0',
         day: '*',
         month: '*',
-        weekDay: '*',
+        // weekDay omitido — EventBridge no acepta 'day' y 'weekDay' simultáneamente
       }),
     });
 
