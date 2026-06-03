@@ -152,6 +152,7 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
 
+    lambda;
     // ============================================================
     // Lambda Execution Role
     // ============================================================
@@ -269,6 +270,7 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
         minute: '0',
         day: '*',
         month: '*',
+        weekDay: '*',
       }),
     });
 
