@@ -62,3 +62,16 @@ infrastructure/dist/
 infrastructure/.env
 infrastructure/.env.local
 infrastructure/.env.*.local
+
+# VS Code (solo settings personales, no el de equipo)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Environment files
+.env.local
+.env.*.local
+infrastructure/.env
+infrastructure/.env.local
+frontend/.env.local
+backend/.env.local
