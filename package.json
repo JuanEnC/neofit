@@ -14,7 +14,12 @@
     "format:check": "prettier --check . --ignore-path .prettierignore",
     "build": "pnpm --filter neofit-infrastructure build",
     "test:unit": "echo 'Tests will be added in Phase 2' && exit 0",
-    "deploy:infra": "bash scripts/deploy-infrastructure.sh dev us-east-1"
+    "deploy:infra": "bash scripts/deploy-infrastructure.sh dev us-east-1",
+    "seed": "pnpm --filter neofit-backend seed",
+    "seed:local": "pnpm --filter neofit-backend seed:local",
+    "db:local:start": "docker compose up -d dynamodb-local",
+    "db:local:stop": "docker compose down",
+    "db:local:setup": "bash scripts/setup-local-dynamo.sh"
   },
   "keywords": [
     "gym",

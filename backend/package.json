@@ -1,10 +1,43 @@
 {
   "name": "neofit-backend",
   "version": "1.0.0",
+  "description": "NeoFit Backend — AWS Lambda Functions",
   "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "ts-node src/index.ts",
+    "lint": "eslint src --ext .ts",
     "format": "prettier --write src",
-    "format:check": "prettier --check src"
+    "format:check": "prettier --check src",
+    "test:unit": "jest --coverage",
+    "seed": "ts-node src/database/seed.ts",
+    "seed:local": "DYNAMODB_ENDPOINT=http://localhost:8000 ts-node src/database/seed.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.1062.0",
+    "@aws-sdk/client-dynamodb": "^3.1062.0",
+    "@aws-sdk/client-ses": "^3.1062.0",
+    "@aws-sdk/client-sqs": "^3.1062.0",
+    "@aws-sdk/client-ssm": "^3.1062.0",
+    "@aws-sdk/lib-dynamodb": "^3.1062.0",
+    "@aws-sdk/util-dynamodb": "^3.996.2",
+    "stripe": "^22.2.0",
+    "uuid": "^14.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.9.1",
+    "@types/uuid": "^11.0.0 ",
+    "aws-sdk-client-mock": "^4.1.0",
+    "aws-sdk-client-mock-jest": "^4.1.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^6.0.3"
   }
 }

@@ -75,3 +75,13 @@ infrastructure/.env
 infrastructure/.env.local
 frontend/.env.local
 backend/.env.local
+
+# Docker
+.docker/
+
+# DynamoDB Local data (si usas modo persistente en el futuro)
+dynamodb-local-data/
+
+# Backend build
+backend/dist/
+backend/coverage/
