@@ -14,7 +14,7 @@
     "format:check": "prettier --check src",
     "test:unit": "jest --coverage",
     "seed": "ts-node src/database/seed.ts",
-    "seed:local": "DYNAMODB_ENDPOINT=http://localhost:8000 ts-node src/database/seed.ts"
+    "seed:local": "cross-env DYNAMODB_ENDPOINT=http://localhost:8000 DYNAMODB_TABLE_NAME=NeoFit_MasterTable_dev AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local AWS_REGION=us-east-1 ts-node src/database/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.1062.0",
@@ -35,6 +35,7 @@
     "@types/uuid": "^11.0.0 ",
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
+    "cross-env": "^10.1.0",
     "jest": "^30.4.2",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.0",
