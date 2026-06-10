@@ -5,8 +5,10 @@ packages:
   - 'tests'
 
 allowBuilds:
+  esbuild: true
   unrs-resolver: true
 
 # Allow unrs-resolver to run its build script (native Rust dependency for ESLint)
 onlyBuiltDependencies:
   - unrs-resolver
+  - esbuild

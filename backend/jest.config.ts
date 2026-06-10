@@ -18,7 +18,16 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
 
-  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/index.ts', '!src/database/seed.ts'],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/index.ts',
+    '!src/database/seed.ts',
+    // Handler and response are integration-tested in Phase 6 (E2E)
+    '!src/lambdas/*/handler.ts',
+    '!src/shared/response.ts',
+  ],
+
   coverageThreshold: {
     global: {
       lines: 80,

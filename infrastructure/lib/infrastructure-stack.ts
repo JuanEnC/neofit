@@ -10,7 +10,7 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
-import { CorsHttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
+import { UsersFunction } from './lambdas/users-function';
 
 export class NeoFitInfrastructureStack extends cdk.Stack {
   public readonly cognitoUserPool: cognito.UserPool;
@@ -28,29 +28,16 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
     const projectName = 'NeoFit';
     const environment = this.node.tryGetContext('environment') || 'dev';
 
-    // ============================================================
-    // Cognito User Pool - Autenticación
-    // ============================================================
+    // ── Cognito User Pool ──────────────────────────────────────────────────
+
     this.cognitoUserPool = new cognito.UserPool(this, 'UserPool', {
       userPoolName: `${projectName}-UserPool-${environment}`,
       selfSignUpEnabled: true,
       standardAttributes: {
-        email: {
-          required: true,
-          mutable: false,
-        },
-        givenName: {
-          required: true,
-          mutable: true,
-        },
-        familyName: {
-          required: true,
-          mutable: true,
-        },
-        phoneNumber: {
-          required: false,
-          mutable: true,
-        },
+        email: { required: true, mutable: false },
+        givenName: { required: true, mutable: true },
+        familyName: { required: true, mutable: true },
+        phoneNumber: { required: false, mutable: true },
       },
       passwordPolicy: {
         minLength: 8,
@@ -60,46 +47,27 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
         requireSymbols: false,
       },
       accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
-      // autoVerifiedAttributes was removed in v2.257
-      // Use signInAliases instead
-      signInAliases: {
-        email: true,
-        username: false,
-      },
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // Solo para dev
+      signInAliases: { email: true, username: false },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    // User Pool Client para aplicación web
-    // Nota: clientName ha sido reemplazado con otras propiedades
     this.cognitoUserPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
       userPool: this.cognitoUserPool,
       generateSecret: false,
-      authFlows: {
-        userPassword: true,
-        userSrp: true,
-      },
+      authFlows: { userPassword: true, userSrp: true },
       oAuth: {
-        flows: {
-          implicitCodeGrant: true,
-        },
+        flows: { implicitCodeGrant: true },
         scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL, cognito.OAuthScope.PROFILE],
       },
       preventUserExistenceErrors: true,
     });
 
-    // ============================================================
-    // DynamoDB Table - Base de datos
-    // ============================================================
+    // ── DynamoDB Table ─────────────────────────────────────────────────────
+
     this.dynamodbTable = new dynamodb.Table(this, 'MasterTable', {
       tableName: `${projectName}_MasterTable_${environment}`,
-      partitionKey: {
-        name: 'PK',
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: 'SK',
-        type: dynamodb.AttributeType.STRING,
-      },
+      partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
@@ -109,41 +77,25 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    // Agregar tags al stack, no a la table
     cdk.Tags.of(this.dynamodbTable).add('Project', projectName);
     cdk.Tags.of(this.dynamodbTable).add('Environment', environment);
 
-    // GSI1 - Índice invertido para queries de entidad polimórfica
     this.dynamodbTable.addGlobalSecondaryIndex({
       indexName: 'GSI1',
-      partitionKey: {
-        name: 'SK',
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: 'PK',
-        type: dynamodb.AttributeType.STRING,
-      },
+      partitionKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    // GSI2 - Índice cronológico para historiales
     this.dynamodbTable.addGlobalSecondaryIndex({
       indexName: 'GSI2',
-      partitionKey: {
-        name: 'EntityType',
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: 'Timestamp',
-        type: dynamodb.AttributeType.STRING,
-      },
+      partitionKey: { name: 'EntityType', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'Timestamp', type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.KEYS_ONLY,
     });
 
-    // ============================================================
-    // S3 Bucket - Frontend assets
-    // ============================================================
+    // ── S3 Bucket ──────────────────────────────────────────────────────────
+
     this.s3Bucket = new s3.Bucket(this, 'FrontendBucket', {
       bucketName: `${projectName.toLowerCase()}-frontend-${environment}-${cdk.Stack.of(this).account}`,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -153,20 +105,17 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
 
-    lambda;
-    // ============================================================
-    // Lambda Execution Role
-    // ============================================================
+    // ── Lambda Execution Role ──────────────────────────────────────────────
+
     this.lambdaRole = new iam.Role(this, 'LambdaExecutionRole', {
       roleName: `${projectName}-LambdaRole-${environment}`,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
       ],
-      description: 'Role for Lambda functions to access AWS services',
+      description: 'Execution role shared by all NeoFit Lambda functions',
     });
 
-    // Permisos para DynamoDB
     this.lambdaRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
@@ -181,7 +130,6 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       })
     );
 
-    // Permisos para Cognito
     this.lambdaRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
@@ -194,7 +142,6 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       })
     );
 
-    // Permisos para SQS
     this.lambdaRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['sqs:SendMessage'],
@@ -202,7 +149,6 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       })
     );
 
-    // Permisos para SSM Parameter Store
     this.lambdaRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['ssm:GetParameter', 'ssm:GetParameters'],
@@ -210,43 +156,35 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       })
     );
 
-    // ============================================================
-    // SQS - Dead Letter Queue
-    // ============================================================
+    // ── SQS Queues ─────────────────────────────────────────────────────────
+
     this.dlqQueue = new sqs.Queue(this, 'DeadLetterQueue', {
       queueName: `${projectName}-DLQ-${environment}`,
       retentionPeriod: cdk.Duration.days(7),
       encryption: sqs.QueueEncryption.KMS_MANAGED,
     });
 
-    // ============================================================
-    // SQS - Notification Queue
-    // ============================================================
     this.notificationQueue = new sqs.Queue(this, 'NotificationQueue', {
       queueName: `${projectName}-NotificationQueue-${environment}`,
       visibilityTimeout: cdk.Duration.seconds(300),
-      deadLetterQueue: {
-        queue: this.dlqQueue,
-        maxReceiveCount: 3,
-      },
+      deadLetterQueue: { queue: this.dlqQueue, maxReceiveCount: 3 },
       encryption: sqs.QueueEncryption.KMS_MANAGED,
     });
 
-    // ============================================================
-    // API Gateway HTTP API (v2)
-    // ============================================================
+    // ── API Gateway HTTP API ───────────────────────────────────────────────
+
     this.apiGateway = new apigatewayv2.HttpApi(this, 'HttpApi', {
       apiName: `${projectName}-Api-${environment}`,
       description: 'NeoFit HTTP API Gateway',
       corsPreflight: {
         allowOrigins: this.getCorsOrigins(environment),
         allowMethods: [
-          CorsHttpMethod.GET,
-          CorsHttpMethod.POST,
-          CorsHttpMethod.PUT,
-          CorsHttpMethod.PATCH,
-          CorsHttpMethod.DELETE,
-          CorsHttpMethod.OPTIONS,
+          apigatewayv2.CorsHttpMethod.GET,
+          apigatewayv2.CorsHttpMethod.POST,
+          apigatewayv2.CorsHttpMethod.PUT,
+          apigatewayv2.CorsHttpMethod.PATCH,
+          apigatewayv2.CorsHttpMethod.DELETE,
+          apigatewayv2.CorsHttpMethod.OPTIONS,
         ],
         allowHeaders: [
           'Content-Type',
@@ -260,9 +198,8 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       },
     });
 
-    // ============================================================
-    // EventBridge - Cron para notificaciones
-    // ============================================================
+    // ── EventBridge Cron ───────────────────────────────────────────────────
+
     const notificationRule = new events.Rule(this, 'DailyNotificationRule', {
       ruleName: `${projectName}-DailyNotification-${environment}`,
       description: 'Trigger daily notification checks at 6:00 AM UTC-6',
@@ -271,7 +208,6 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
         minute: '0',
         day: '*',
         month: '*',
-        // weekDay omitido — EventBridge no acepta 'day' y 'weekDay' simultáneamente
       }),
     });
 
@@ -283,24 +219,28 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       })
     );
 
-    // ============================================================
-    // CloudWatch Logs
-    // ============================================================
+    // ── CloudWatch Log Groups ──────────────────────────────────────────────
+
     new logs.LogGroup(this, 'ApiGatewayLogGroup', {
       logGroupName: `/aws/apigateway/${projectName}-${environment}`,
       retention: logs.RetentionDays.TWO_WEEKS,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    new logs.LogGroup(this, 'LambdaLogGroup', {
-      logGroupName: `/aws/lambda/${projectName}-${environment}`,
-      retention: logs.RetentionDays.TWO_WEEKS,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    // ── Lambda Functions ───────────────────────────────────────────────────
+
+    // Users microservice — all /users/* routes
+    new UsersFunction(this, 'UsersFunction', {
+      environment,
+      dynamoTableName: this.dynamodbTable.tableName,
+      lambdaRole: this.lambdaRole,
+      httpApi: this.apiGateway,
+      userPool: this.cognitoUserPool,
+      userPoolClient: this.cognitoUserPoolClient,
     });
 
-    // ============================================================
-    // Outputs
-    // ============================================================
+    // ── Stack Outputs ──────────────────────────────────────────────────────
+
     new cdk.CfnOutput(this, 'CognitoUserPoolId', {
       value: this.cognitoUserPool.userPoolId,
       exportName: `${projectName}-UserPoolId-${environment}`,
@@ -314,7 +254,7 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'ApiGatewayUrl', {
-      value: this.apiGateway.url || 'TBD',
+      value: this.apiGateway.url ?? 'TBD',
       exportName: `${projectName}-ApiUrl-${environment}`,
       description: 'API Gateway HTTP API URL',
     });
@@ -340,7 +280,7 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'NotificationQueueUrl', {
       value: this.notificationQueue.queueUrl,
       exportName: `${projectName}-NotificationQueueUrl-${environment}`,
-      description: 'Notification SQS Queue URL',
+      description: 'SQS Notification Queue URL',
     });
   }
 
