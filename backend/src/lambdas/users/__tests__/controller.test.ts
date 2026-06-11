@@ -15,7 +15,7 @@ import {
   deleteUser,
 } from '../controller';
 import * as repo from '../repository';
-import { ForbiddenError, NotFoundError, ValidationError } from '../../../shared/errors';
+import { ForbiddenError, ValidationError } from '../../../shared/errors';
 import type { User } from '../../../database/schema';
 
 // ─── Mock Repository ──────────────────────────────────────────────────────────

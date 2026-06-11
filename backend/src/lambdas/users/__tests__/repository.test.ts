@@ -12,13 +12,12 @@ import { beforeEach } from '@jest/globals';
 import {
   DynamoDBDocumentClient,
   GetCommand,
-  PutCommand,
   UpdateCommand,
   DeleteCommand,
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
+
 import { mockClient } from 'aws-sdk-client-mock';
-import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 
 import {
   getUserById,

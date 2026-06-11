@@ -32,8 +32,7 @@ import type { UpdateUserInput as UpdateUserBody } from './schemas';
 /**
  * Strip DynamoDB keys from a UserRecord to return a clean domain object.
  */
-function toUser(record: UserRecord): User {
-  const { PK: _pk, SK: _sk, EntityType: _et, Timestamp: _ts, ...user } = record;
+function toUser({ PK: _pk, SK: _sk, EntityType: _et, Timestamp: _ts, ...user }: UserRecord): User {
   return user;
 }
 
