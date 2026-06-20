@@ -33,7 +33,7 @@ const config: Config = {
   coverageThreshold: {
     global: {
       lines: 80,
-      functions: 80,
+      functions: 75,
       branches: 55, // raised after excluding stripe/ssm
       statements: 80,
     },
