@@ -13,7 +13,9 @@ const PHONE_REGEX = /^\+?[\d\s\-().]{7,20}$/;
 // ─── Path Parameters ──────────────────────────────────────────────────────────
 
 export const userIdParamSchema = z.object({
-  id: z.string().uuid({ message: 'User ID must be a valid UUID' }),
+  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
+    message: 'User ID must be a valid UUID',
+  }),
 });
 
 // ─── Query Parameters ─────────────────────────────────────────────────────────

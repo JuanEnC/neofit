@@ -6,7 +6,7 @@
  */
 
 import type { APIGatewayProxyResultV2 } from 'aws-lambda';
-import { isAppError } from './errors';
+import { isAppError, ValidationError } from './errors';
 import { logger } from './logger';
 
 const JSON_HEADERS = {
@@ -63,6 +63,7 @@ export function handleError(error: unknown): APIGatewayProxyResultV2 {
       code: error.code,
       message: error.message,
       statusCode: error.statusCode,
+      details: (error as ValidationError).details,
     });
 
     return errorResponse(error.statusCode, error.code, error.message);

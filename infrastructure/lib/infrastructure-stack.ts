@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
-//import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as authorizers from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
@@ -11,6 +11,7 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { UsersFunction } from './lambdas/users-function';
+import { PaymentsFunction } from './lambdas/payments-function';
 
 export class NeoFitInfrastructureStack extends cdk.Stack {
   public readonly cognitoUserPool: cognito.UserPool;
@@ -198,6 +199,20 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       },
     });
 
+    // ── JWT Authorizer — created once, shared across all Lambda constructs ─
+    // Both UsersFunction and PaymentsFunction use the same Cognito pool,
+    // so one authorizer resource is correct and avoids CDK construct ID conflicts.
+
+    const jwtAuthorizer = new authorizers.HttpJwtAuthorizer(
+      'CognitoJwtAuthorizer',
+      `https://cognito-idp.${this.region}.amazonaws.com/${this.cognitoUserPool.userPoolId}`,
+      {
+        authorizerName: `${projectName}-Cognito-${environment}`,
+        jwtAudience: [this.cognitoUserPoolClient.userPoolClientId],
+        identitySource: ['$request.header.Authorization'],
+      }
+    );
+
     // ── EventBridge Cron ───────────────────────────────────────────────────
 
     const notificationRule = new events.Rule(this, 'DailyNotificationRule', {
@@ -229,14 +244,20 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
 
     // ── Lambda Functions ───────────────────────────────────────────────────
 
-    // Users microservice — all /users/* routes
     new UsersFunction(this, 'UsersFunction', {
       environment,
       dynamoTableName: this.dynamodbTable.tableName,
       lambdaRole: this.lambdaRole,
       httpApi: this.apiGateway,
-      userPool: this.cognitoUserPool,
-      userPoolClient: this.cognitoUserPoolClient,
+      jwtAuthorizer,
+    });
+
+    new PaymentsFunction(this, 'PaymentsFunction', {
+      environment,
+      dynamoTableName: this.dynamodbTable.tableName,
+      lambdaRole: this.lambdaRole,
+      httpApi: this.apiGateway,
+      jwtAuthorizer,
     });
 
     // ── Stack Outputs ──────────────────────────────────────────────────────
