@@ -12,6 +12,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { UsersFunction } from './lambdas/users-function';
 import { PaymentsFunction } from './lambdas/payments-function';
+import { RoutinesFunction } from './lambdas/routines-function';
 
 export class NeoFitInfrastructureStack extends cdk.Stack {
   public readonly cognitoUserPool: cognito.UserPool;
@@ -260,6 +261,13 @@ export class NeoFitInfrastructureStack extends cdk.Stack {
       jwtAuthorizer,
     });
 
+    new RoutinesFunction(this, 'RoutinesFunction', {
+      environment,
+      dynamoTableName: this.dynamodbTable.tableName,
+      lambdaRole: this.lambdaRole,
+      httpApi: this.apiGateway,
+      jwtAuthorizer,
+    });
     // ── Stack Outputs ──────────────────────────────────────────────────────
 
     new cdk.CfnOutput(this, 'CognitoUserPoolId', {
