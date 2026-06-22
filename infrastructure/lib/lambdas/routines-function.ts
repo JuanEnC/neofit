@@ -1,90 +1,122 @@
 /**
  * Routines Lambda CDK Construct
  *
- * Deploys the Routines Lambda and registers all /routines/* routes
- * on the shared HTTP API. The JWT authorizer is created once in the
- * stack and passed here as a prop to avoid CDK construct ID conflicts.
+ * Provisions the Routines microservice and wires its routes to the
+ * existing API Gateway HTTP API with JWT authorization.
+ * The JWT authorizer is created once in the stack and passed as a prop
+ * to avoid CDK construct ID conflicts when multiple services share the same API.
  */
 
 import * as path from 'path';
+import * as cdk from 'aws-cdk-lib';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
+import * as integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import * as authorizers from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
-import { Duration } from 'aws-cdk-lib';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { HttpApi, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
-import { HttpJwtAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
-import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { IRole } from 'aws-cdk-lib/aws-iam';
 
-export interface RoutinesFunctionProps {
+interface RoutinesFunctionProps {
   environment: string;
   dynamoTableName: string;
-  lambdaRole: IRole;
-  httpApi: HttpApi;
-  // Created once in the stack and passed as prop — never instantiated per-construct
-  jwtAuthorizer: HttpJwtAuthorizer;
+  lambdaRole: iam.IRole;
+  httpApi: apigatewayv2.HttpApi;
+  jwtAuthorizer: authorizers.HttpJwtAuthorizer;
 }
 
 export class RoutinesFunction extends Construct {
+  public readonly function: lambdaNode.NodejsFunction;
+
   constructor(scope: Construct, id: string, props: RoutinesFunctionProps) {
     super(scope, id);
 
-    const fn = new NodejsFunction(this, 'Handler', {
-      // projectRoot must point to monorepo root for pnpm workspace resolution
-      projectRoot: path.resolve(__dirname, '../../../'),
-      entry: path.resolve(__dirname, '../../../backend/src/lambdas/routines/handler.ts'),
+    const { environment, dynamoTableName, lambdaRole, httpApi, jwtAuthorizer } = props;
+
+    // ── Lambda Function ─────────────────────────────────────────────────────
+
+    this.function = new lambdaNode.NodejsFunction(this, 'Handler', {
+      functionName: `NeoFit-RoutinesService-${environment}`,
+      description: 'NeoFit Routines microservice — exercise catalog management',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      entry: path.join(__dirname, '../../../backend/src/lambdas/routines/handler.ts'),
       handler: 'handler',
-      runtime: Runtime.NODEJS_22_X,
-      role: props.lambdaRole,
-      timeout: Duration.seconds(29),
+      // projectRoot must contain the entry file — set to monorepo root
+      projectRoot: path.join(__dirname, '../../..'),
+      role: lambdaRole,
+      timeout: cdk.Duration.seconds(29),
       memorySize: 256,
-      bundling: {
-        tsconfig: path.resolve(__dirname, '../../../backend/tsconfig.json'),
-      },
       environment: {
-        TABLE_NAME: props.dynamoTableName,
-        ENVIRONMENT: props.environment,
+        TABLE_NAME: dynamoTableName,
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+        NODE_OPTIONS: '--enable-source-maps',
       },
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        target: 'node22',
+        externalModules: ['@aws-sdk/*'],
+        // Point esbuild to the backend tsconfig, not the infrastructure one
+        tsconfig: path.join(__dirname, '../../../backend/tsconfig.json'),
+      },
+      logGroup: new logs.LogGroup(this, 'LogGroup', {
+        logGroupName: `/aws/lambda/NeoFit-RoutinesService-${environment}`,
+        retention: logs.RetentionDays.TWO_WEEKS,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      }),
     });
 
-    const integration = new HttpLambdaIntegration('RoutinesIntegration', fn);
-    const authOptions = { authorizer: props.jwtAuthorizer };
+    const integration = new integrations.HttpLambdaIntegration(
+      'RoutinesIntegration',
+      this.function
+    );
+
+    // ── API Gateway Routes ───────────────────────────────────────────────────
+
+    const routeDefaults = {
+      integration,
+      authorizer: jwtAuthorizer,
+    };
 
     // Read routes — JWT required, accessible to all authenticated users
-    props.httpApi.addRoutes({
+    httpApi.addRoutes({
       path: '/routines',
-      methods: [HttpMethod.GET],
-      integration,
-      ...authOptions,
+      methods: [apigatewayv2.HttpMethod.GET],
+      ...routeDefaults,
     });
 
-    props.httpApi.addRoutes({
+    httpApi.addRoutes({
       path: '/routines/group/{muscle}',
-      methods: [HttpMethod.GET],
-      integration,
-      ...authOptions,
+      methods: [apigatewayv2.HttpMethod.GET],
+      ...routeDefaults,
     });
 
     // Write routes — JWT required, Admin-only enforced at controller level
-    props.httpApi.addRoutes({
+    httpApi.addRoutes({
       path: '/routines',
-      methods: [HttpMethod.POST],
-      integration,
-      ...authOptions,
+      methods: [apigatewayv2.HttpMethod.POST],
+      ...routeDefaults,
     });
 
-    props.httpApi.addRoutes({
+    httpApi.addRoutes({
       path: '/routines/{muscle}/{id}',
-      methods: [HttpMethod.PUT],
-      integration,
-      ...authOptions,
+      methods: [apigatewayv2.HttpMethod.PUT],
+      ...routeDefaults,
     });
 
-    props.httpApi.addRoutes({
+    httpApi.addRoutes({
       path: '/routines/{muscle}/{id}',
-      methods: [HttpMethod.DELETE],
-      integration,
-      ...authOptions,
+      methods: [apigatewayv2.HttpMethod.DELETE],
+      ...routeDefaults,
+    });
+
+    // ── Stack Outputs ────────────────────────────────────────────────────────
+
+    new cdk.CfnOutput(this, 'FunctionArn', {
+      value: this.function.functionArn,
+      description: 'Routines Lambda function ARN',
+      exportName: `NeoFit-RoutinesFunction-${environment}`,
     });
   }
 }
