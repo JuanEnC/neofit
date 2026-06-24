@@ -28,14 +28,13 @@ const config: Config = {
     // Stripe and SSM require live credentials — mocked at call site in controller tests
     '!src/lambdas/payments/stripe.ts',
     '!src/shared/ssm.ts',
-    '**/lambdas/routines/handler.ts',
   ],
 
   coverageThreshold: {
     global: {
       lines: 80,
       functions: 75,
-      branches: 55, // raised after excluding stripe/ssm
+      branches: 55,
       statements: 80,
     },
   },
