@@ -10,9 +10,9 @@ No secrets are stored in environment variables, source code, or CDK context.
 
 ## Parameters
 
-| Parameter name | Type | Used by | Description |
-|---|---|---|---|
-| `/neofit/stripe/secret-key` | SecureString | Payments Lambda | Stripe API key for creating PaymentIntents and managing customers |
+| Parameter name                  | Type         | Used by         | Description                                                              |
+| ------------------------------- | ------------ | --------------- | ------------------------------------------------------------------------ |
+| `/neofit/stripe/secret-key`     | SecureString | Payments Lambda | Stripe API key for creating PaymentIntents and managing customers        |
 | `/neofit/stripe/webhook-secret` | SecureString | Payments Lambda | Stripe webhook signing secret for verifying `/payments/webhook` requests |
 
 ---
