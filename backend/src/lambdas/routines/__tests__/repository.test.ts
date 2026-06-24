@@ -75,7 +75,7 @@ describe('listAllExercises', () => {
     ddbMock.on(QueryCommand).resolves({ Items: [exerciseRecord] });
 
     const result = await listAllExercises();
-
+    exerciseDomain;
     const calls = ddbMock.commandCalls(QueryCommand);
     expect(calls).toHaveLength(1);
     expect(calls[0].args[0].input.IndexName).toBe('GSI2');
